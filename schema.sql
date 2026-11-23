@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS sessions (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  started_at INTEGER NOT NULL,
+  round INTEGER NOT NULL,
+  round_started_at INTEGER NOT NULL,
+  score INTEGER NOT NULL,
+  cells TEXT NOT NULL,
+  target TEXT NOT NULL,
+  start TEXT NOT NULL DEFAULT '[0,0,0,1]',
+  done INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS scores (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  score INTEGER NOT NULL,
+  rounds INTEGER NOT NULL,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS scores_by_score ON scores (score DESC);

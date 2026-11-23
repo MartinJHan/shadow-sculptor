@@ -1,0 +1,13 @@
+{
+  "name": "shadow-sculptor",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-11-01",
+  "assets": { "directory": "./public" },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "shadow-sculptor-db",
+      "database_id": "61a56b39-bf75-4a13-b806-0677feba1c1c"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+node_modules
+.wrangler
+.npm-cache
+.claude
+.DS_Store
+__pycache__

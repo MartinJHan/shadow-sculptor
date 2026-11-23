@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shadow Sculptor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+  </script>
+</head>
+<body>
+  <main id="game">
+    <canvas id="hud" aria-label="time and score"></canvas>
+    <div id="stage">
+      <section class="panel">
+        <h2>Your sculpture</h2>
+        <div id="view"></div>
+      </section>
+      <section class="panel">
+        <h2>The wall</h2>
+        <canvas id="wall" aria-label="target shadow and your shadow"></canvas>
+      </section>
+    </div>
+    <p id="keys">Drag or <b>W A S D</b> to turn · <b>Q E</b> to spin · <b>Shift</b> fine control · <b>Space</b> lock in · <b>X</b> skip</p>
+  </main>
+
+  <div id="overlay" class="overlay">
+    <div class="card">
+      <h1>Shadow Sculptor</h1>
+      <p class="lede">A lamp shines on your sculpture from where you are standing. Turn the sculpture until its shadow fills the dark shape on the wall.</p>
+      <ul class="rules">
+        <li><span class="sw gold"></span> Gold: your shadow covers the target.</li>
+        <li><span class="sw red"></span> Red: your shadow spills outside it.</li>
+        <li><span class="sw dark"></span> Dark: target not yet covered.</li>
+      </ul>
+      <p>You have <b>90 seconds</b>. Each lock-in scores up to 1000 points for accuracy (under 80% match scores nothing), plus up to 50% bonus for speed. Sculptures get more complex as you go. One try per sculpture.</p>
+      <form id="startForm">
+        <input id="name" maxlength="16" placeholder="Your name" autocomplete="off" />
+        <button type="submit" id="startBtn">Start</button>
+      </form>
+      <h3>Leaderboard</h3>
+      <ol id="board" class="board"></ol>
+    </div>
+  </div>
+
+  <div id="endOverlay" class="overlay hidden">
+    <div class="card">
+      <h1>Time's up</h1>
+      <canvas id="final" width="600" height="140" aria-label="final score"></canvas>
+      <h3>Leaderboard</h3>
+      <ol id="board2" class="board"></ol>
+      <button id="againBtn">Play again</button>
+    </div>
+  </div>
+
+  <script type="module" src="game.js"></script>
+</body>
+</html>

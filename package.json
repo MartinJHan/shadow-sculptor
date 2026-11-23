@@ -1,0 +1,14 @@
+{
+  "name": "shadow-sculptor",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "db:local": "wrangler d1 execute shadow-sculptor-db --local --file schema.sql",
+    "db:remote": "wrangler d1 execute shadow-sculptor-db --remote --file schema.sql",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
