@@ -1,57 +1,65 @@
-# Shadow Sculptor 影子雕刻师
+# Shadow Sculptor
 
-一个 Three.js 浏览器游戏：旋转 3D 方块雕塑，让它投在墙上的影子和目标影子重合。限时 90 秒。
+A browser game built with Three.js. Rotate a sculpture of 3D cubes until the shadow it casts on the wall matches the target shadow. You have 90 seconds.
 
-## 玩法
-- **目标**：让你的影子（金色）尽量盖满墙上的深色目标影子，同时不溢出（红色）。
-- **操作**：鼠标拖动 / `W A S D` / 方向键旋转；`Q E` 或滚轮在平面内转；按住 `Shift` 微调；`Space` 锁定提交；`X` 跳过。
-- **计分**：匹配度（IoU）低于 80% 得 0 分；80%–100% 映射到 0–1000 分，再加最多 50% 的速度奖励（25 秒内越快越多）。每个雕塑只能提交一次，雕塑会从 4 个方块逐渐增加到 8 个。
+**Play:** https://shadow-sculptor.shadow-sculptor.workers.dev
 
-## 文件
-| 文件 | 作用 |
+## How to play
+- **Goal:** Make your shadow (gold) cover as much of the dark target shadow as possible without spilling outside it (red).
+- **Controls:** Drag with the mouse, or use `W A S D` / arrow keys, to tilt the sculpture. `Q E` or the scroll wheel spins it within the wall plane. Hold `Shift` for fine control. `Space` locks in an answer; `X` skips.
+- **Scoring:** A match (IoU) below 80% scores 0. Matches from 80% to 100% map to 0–1000 points, plus a speed bonus of up to 50% (the faster you answer within 25 seconds, the bigger the bonus). Each sculpture can be submitted only once, and sculptures grow from 4 to 8 cubes.
+
+## Files
+| File | Purpose |
 |---|---|
-| `public/index.html`, `style.css` | 页面与说明 |
-| `public/game.js` | Three.js 渲染、输入、墙面影子合成、HUD |
-| `public/shared.js` | 前后端共用几何：随机多方块、投影、栅格化、IoU |
-| `src/worker.js` | Cloudflare Worker：发题、判分、排行榜 |
-| `schema.sql` | D1 数据库表 |
+| `public/index.html`, `style.css` | Page layout and instructions |
+| `public/game.js` | Three.js rendering, input, wall shadow compositing, HUD, input recording |
+| `public/shared.js` | Geometry shared by browser and server: random polycubes, projection, rasterizing, IoU, move replay |
+| `src/worker.js` | Cloudflare Worker: issues rounds, replays inputs, checks for human-like input, scores, leaderboard |
+| `schema.sql` | D1 database tables |
+| `attack/solver.mjs`, `attack/solver_v2.mjs` | AI attack scripts used to test the game |
+| `report/` | Course report (PDF) and the script that builds it |
 
-## 本地运行
+## Run locally
 ```bash
 npm install
 npm run db:local
 npm run dev
 ```
-然后打开 http://localhost:8787
+Then open http://localhost:8787
 
-## 部署到 Cloudflare（免费）
+## Deploy to Cloudflare (free tier)
 ```bash
 npx wrangler login
 npx wrangler d1 create shadow-sculptor-db
 ```
-把输出里的 `database_id` 填进 `wrangler.jsonc`，然后：
+Put the printed `database_id` into `wrangler.jsonc`, then:
 ```bash
 npm run db:remote
 npm run deploy
 ```
-会得到 `https://shadow-sculptor.<你的子域>.workers.dev`。
+You get a URL like `https://shadow-sculptor.<your-subdomain>.workers.dev`.
 
-## 为什么对 AI 难（报告素材）
-1. **答案不在前端**：目标旋转只存在服务器 D1 里，前端只拿到方块布局和一张 128×128 的影子位图。改 JS 变量、读源码都拿不到答案。
-2. **服务器判分**：分数由 Worker 计算，前端显示的分数只是画在 canvas 上的结果，改了也不影响排行榜。
-3. **一次提交**：每轮用 compare-and-set 保证只能提交一次，无法把服务器当"打分神谕"反复试。
-4. **不给数字反馈**：玩的过程中只有颜色重叠，没有实时百分比，截图 agent 只能靠视觉判断。
-5. **反随机**：实测随机旋转的匹配度中位数约 57%、p99 约 86%，所以门槛定在 80%，乱猜基本 0 分。
-6. **时间压力 + 防秒答**：90 秒总时长，单轮少于 2 秒判为 "too fast" 0 分，截图-思考-操作循环很吃亏。
-7. **3D 心理旋转**：人靠直觉，视觉模型从 2D 截图推 3D 姿态很弱。
-8. **输入回放（加固后）**：服务器给出每轮的起始姿态，浏览器只提交拖动/按键的输入记录，由服务器回放得到最终姿态，并拒绝过短或转速超过人手的记录；判分用 2 倍分辨率的隐藏目标。
+## Why it is hard for AI
+1. **The answer never reaches the browser.** The target rotation is stored only in the server's D1 database. The browser gets the cube layout and a 128×128 bitmap of the target shadow. Reading the source or editing JavaScript variables does not reveal the answer.
+2. **The server keeps score.** Scores are computed by the Worker. The score on screen is only drawn on a canvas, so editing it changes nothing on the leaderboard.
+3. **One try per round.** A compare-and-set update ensures each round is submitted once, so the server cannot be used as a scoring oracle.
+4. **No numeric feedback while playing.** Players see only color overlap, never a live percentage, so a screenshot agent must judge visually.
+5. **Random guessing does not pay.** Random rotations match with a median of about 57% (99th percentile about 86%), so the threshold is 80% and guessing scores almost nothing.
+6. **Time pressure.** The game lasts 90 seconds, and a round answered in under 2 seconds scores 0 ("too fast"). A screenshot-think-act loop loses a lot of time.
+7. **3D mental rotation.** Humans do it intuitively; vision models are weak at inferring a 3D pose from a 2D screenshot.
+8. **Input replay (added after testing).** The server picks each round's starting pose. The browser submits only its logged drag and key inputs, and the server replays them to get the final pose. Logs that are too short or turn faster than a human hand are rejected. Answers are judged against a hidden target at twice the resolution shown to the browser.
 
-### AI 挑战实测（线上，90 秒一局）
-| Agent | 得分 |
+## AI challenge results (live site, one 90-second game each)
+| Agent | Score |
 |---|---|
-| 截图类 agent（只看截图操作） | 8 |
-| 代码 agent v1：直接调 API 提交答案（加固前） | 105,345 |
-| 同一脚本（加固后） | 0 |
-| 代码 agent v2：伪造人类拖动记录（`attack/solver_v2.mjs`） | 55,886 |
+| Screenshot agent (plays from screenshots only) | 8 |
+| Code agent v1: submits answers straight to the API (before hardening) | 105,345 |
+| Same script (after hardening) | 0 |
+| Code agent v2: forges a human-looking drag log (`attack/solver_v2.mjs`) | 55,886 |
 
-结论：加固挡住了简单脚本，但能读懂前端代码的 agent 仍然可以伪造输入。人能从屏幕上解出的谜题，算法也能解。
+**Conclusion:** Hardening stops the simple script, but an agent that reads the front-end code can still forge inputs. Any puzzle a person can solve from what is on screen, an algorithm can solve too. The realistic goal is to make attacks take real effort.
+
+## Known attack surface
+- The trace-forging approach above: solve the pose offline from the cube layout and bitmap, then generate a plausible input log.
+- `finish` can end a game early. This only lowers the player's own score, so it is harmless.
